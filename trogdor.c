@@ -131,8 +131,10 @@ int getMovePro(int rush) {
 	int lastMove;
 	int bestMove;
 
-	if (rush)
+	if (rush) {
 		maxTime = RUSHTIME;
+		fprintf(stderr, "Hurry up!\n");
+	}
 
 	bestMove = alphaBeta(start, start, 0, INT_MIN, INT_MAX, BLUE, 5, 1);
 	lastMove = bestMove;
@@ -150,7 +152,7 @@ int getMovePro(int rush) {
 
 		lastMove = move;
 
-		if (time > MAXTIME) {
+		if (time > maxTime || i > 100) {
 			i += 1;
 			if (!(i & 1))
 				i += 1;
@@ -166,6 +168,8 @@ int getMovePro(int rush) {
 		}
 	}
 	fprintf(stderr, "Trog-Depth %d\n\n", i);
+	if (bestMove >> 6 > 1000000)
+		fprintf(stderr, "TROGDOOOOOR!!!\n");
 	return bestMove;
 }
 
@@ -705,7 +709,7 @@ int main(void) {
 
 	readboard();
 
-	if (player_1_time > 500)
+	if (player_1_time > 50000)
 		rush = 1;
 
 	for (i = 0; i < boardSize(columns); i++) {
