@@ -149,7 +149,7 @@ int getMovePro(int rush) {
 		double time = (double) (t2 - t1) / CLOCKS_PER_SEC;
 
 		bestMove = move;
-		if (TESTMODE)
+		if (TESTMODE && i < 12)
 			fprintf(stderr, "Depth %d best move is %d,%c for %d points.\nTime: %f\n", i, getColumn(move), pieces[getPlayed(move)], move >> 6, time);
 
 		lastMove = move;
@@ -189,7 +189,7 @@ void wasteMovePro() {
 int alphaBeta(int origDepth, int depth, int col, int a, int b, int player, int startColumn, int heuristic) {
 	if (!depth) {
 		if (heuristic)
-			return isAlmostWin(col) + 1024 * columnWins(player & 1) + isWin(col) * 1048676; //theirTurn = player&1
+			return diffWins() + 1024 * columnWins(player & 1) + isWin(col) * 1048676; //theirTurn = player&1
 		return isWin(col) * 1048676;
 	}
 	int original = 0;
@@ -575,7 +575,7 @@ int diffWins() {
 			} else if (!blue && red && red < 3 && green < 3) {
 				points -= red + green;
 			}
-			if (!(red+blue+green))
+			if (!(red + blue + green))
 				break;
 		}
 	}
@@ -595,7 +595,7 @@ int diffWins() {
 			} else if (!blue && red && red < 3 && green < 3) {
 				points -= red + green;
 			}
-			if (!(red+blue+green))
+			if (!(red + blue + green))
 				break;
 		}
 	}
@@ -615,7 +615,7 @@ int diffWins() {
 			} else if (!blue && red && red < 3 && green < 3) {
 				points -= red + green;
 			}
-			if (!(red+blue+green))
+			if (!(red + blue + green))
 				break;
 		}
 	}
@@ -635,17 +635,17 @@ int diffWins() {
 			} else if (!blue && red && red < 3 && green < 3) {
 				points -= red + green;
 			}
-//			printf("%c,%c,%c,%c\n", pieces[getPiece((j+3),i)], pieces[getPiece((j+2),i)], pieces[getPiece((j+1),i)], pieces[getPiece(j,i)]);
-//			printf("%d\n", points);
-//			printf("%d,%d,%d\n\n", red, blue, green);
-			if (red+blue+green<2)
+			//			printf("%c,%c,%c,%c\n", pieces[getPiece((j+3),i)], pieces[getPiece((j+2),i)], pieces[getPiece((j+1),i)], pieces[getPiece(j,i)]);
+			//			printf("%d\n", points);
+			//			printf("%d,%d,%d\n\n", red, blue, green);
+			if (red + blue + green < 2)
 				break;
 		}
 	}
 	return points;
 }
 
-//Should make this function better
+//Should make this function better?
 int columnWins(int theirTurn) {
 	int points = 0;
 	int i, j;
@@ -654,48 +654,89 @@ int columnWins(int theirTurn) {
 			continue;
 
 		int placed = 0;
-		int lastBlue = 0;
-		int lastRed = 0;
 		int done = 0;
 		if (theirTurn) {
 			addPiece(i, RED);
 			placed++;
 		}
-		while (columnHeight[i] < boardSize(rows) && !done) {
-			int soFar = 0;
-			int soFarR = 0;
+		while (columnHeight[i] < boardSize(rows)) {
 			addPiece(i, GREEN);
 			placed++;
 			if (isWin(i) > 2) {
 				points++;
-				if (lastBlue) {
-					points += 10;
-					break;
-				} else {
-					soFar = 1;
+				if (columnHeight[i] < boardSize(rows)) {
+					addPiece(i, GREEN);
+					placed++;
+					if (isWin(i) > 2) {
+						points += 10;
+					} else {
+						remPiece(i);
+						addPiece(i, BLUE);
+						if (isWin(i) > 2) {
+							points += 10;
+						}
+					}
 				}
+				break;
 			} else if (isWin(i) < -2) {
 				points--;
-				if (lastRed) {
-					points -= 10;
-					break;
-				} else {
-					soFarR = 1;
+				if (columnHeight[i] < boardSize(rows)) {
+					addPiece(i, GREEN);
+					placed++;
+					if (isWin(i) < -2) {
+						points -= 10;
+					} else {
+						remPiece(i);
+						addPiece(i, RED);
+						if (isWin(i) < -2) {
+							points -= 10;
+
+						}
+					}
 				}
+				break;
 			}
 			remPiece(i);
 			addPiece(i, BLUE);
 			if (isWin(i) > 2) {
 				points++;
-				if (lastBlue) {
-					points += 10;
-					break;
-				} else {
-					soFar = 1;
+				points++;
+				if (columnHeight[i] < boardSize(rows)) {
+					addPiece(i, GREEN);
+					placed++;
+					if (isWin(i) > 2) {
+						points += 10;
+					} else {
+						remPiece(i);
+						addPiece(i, BLUE);
+						if (isWin(i) > 2) {
+							points += 10;
+
+						}
+					}
 				}
+				break;
 			}
-			lastBlue = soFar;
-			lastRed = soFarR;
+			remPiece(i);
+			addPiece(i, RED);
+			if (isWin(i) < -2) {
+				points--;
+				if (columnHeight[i] < boardSize(rows)) {
+					addPiece(i, GREEN);
+					placed++;
+					if (isWin(i) < -2) {
+						points -= 10;
+					} else {
+						remPiece(i);
+						addPiece(i, RED);
+						if (isWin(i) < -2) {
+							points -= 10;
+
+						}
+					}
+				}
+				break;
+			}
 			if (getPiece(columnHeight[i],i-1) == SPACE && getPiece(columnHeight[i],i+1) == SPACE)
 				break;
 		}
@@ -753,71 +794,71 @@ int main(void) {
 
 	readboard();
 
-		if (player_1_time > 500000)
-			rush = 1;
+	if (player_1_time > 500000)
+		rush = 1;
 
-		for (i = 0; i < boardSize(columns); i++) {
-			totMoves += columnHeight[i];
-		}
+	for (i = 0; i < boardSize(columns); i++) {
+		totMoves += columnHeight[i];
+	}
 
-		if (boardSize(columns) == 10 && totMoves < 20) {
-			if (totMoves == 1 && getPiece(0,3) == RED) {
-				col = 3;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 3 && getPiece(2,3) == RED) {
-				col = 5;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 9 && getPiece(5,3) == RED && getPiece(0,4) == RED) {
-				col = 4;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 13 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN) {
-				col = 2;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 15 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN && getPiece(3,2) == RED) {
-				col = 2;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 17 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN && getPiece(3,2) == RED && getPiece(1,6) == RED) {
-				col = 6;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 0) {
-				col = 2;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 2 && getPiece(0,3) == RED) {
-				col = 3;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 6 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED) {
-				col = 6;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 12 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(0,8) == RED) {
-				col = 6;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else if (totMoves == 14 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(0,8) == RED
-					&& getPiece(3,6) == RED) {
-				col = 7;
-				p = pieces[BLUE];
-				wasteMovePro();
-			} else {
-				move = getMovePro(rush);
-				col = getColumn(move);
-				p = pieces[getPlayed(move)];
-			}
+	if (boardSize(columns) == 10 && totMoves < 20) {
+		if (totMoves == 1 && getPiece(0,3) == RED) {
+			col = 3;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 3 && getPiece(2,3) == RED) {
+			col = 5;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 9 && getPiece(5,3) == RED && getPiece(0,4) == RED) {
+			col = 4;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 13 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN) {
+			col = 2;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 15 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN && getPiece(3,2) == RED) {
+			col = 2;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 17 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN && getPiece(3,2) == RED && getPiece(1,6) == RED) {
+			col = 6;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 0) {
+			col = 2;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 2 && getPiece(0,3) == RED) {
+			col = 3;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 6 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED) {
+			col = 6;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 12 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(0,8) == RED) {
+			col = 6;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 14 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(0,8) == RED
+				&& getPiece(3,6) == RED) {
+			col = 7;
+			p = pieces[BLUE];
+			wasteMovePro();
 		} else {
 			move = getMovePro(rush);
 			col = getColumn(move);
 			p = pieces[getPlayed(move)];
 		}
+	} else {
+		move = getMovePro(rush);
+		col = getColumn(move);
+		p = pieces[getPlayed(move)];
+	}
 	freeboard();
-	//	printf("(%d,%c)", col + 1, p);
+	printf("(%d,%c)", col + 1, p);
 
 	return 0;
 }
