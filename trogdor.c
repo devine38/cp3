@@ -13,7 +13,7 @@
 #define DELAY 0.5
 #define MAXTIME 1
 #define RUSHTIME 0.1
-#define TESTMODE 0
+#define TESTMODE 1
 
 // Macros
 #define getPiece(r,c) board[skipPadding + r + c * rows]
@@ -137,7 +137,7 @@ int getMovePro(int rush) {
 		fprintf(stderr, "Hurry up!\n");
 	}
 
-	bestMove = alphaBeta(start, start, 0, INT_MIN, INT_MAX, BLUE, 5, 1);
+	bestMove = alphaBeta(start, start, 0, INT_MIN, INT_MAX, BLUE, last_move, 1);
 	lastMove = bestMove;
 	for (i = start + 1;; i += 1) {
 		if (!i & 1)
@@ -229,8 +229,8 @@ int alphaBeta(int origDepth, int depth, int col, int a, int b, int player, int s
 				if (i == startColumn)
 					continue;
 			}
-			//			if (original)
-			//				fprintf(stderr, "doing %d\n", i);
+//			if (original)
+//				fprintf(stderr, "doing %d\n", i);
 			if (columnHeight[i] >= boardSize(rows))
 				continue;
 			hasMove = 1;
