@@ -12,6 +12,7 @@
 #define INT_MAX 2147483647
 #define DELAY 0.5
 #define MAXTIME 1
+#define TROGDEEP 2.5
 #define RUSHTIME 0.1
 #define TESTMODE 1
 
@@ -155,11 +156,14 @@ int getMovePro(int rush) {
 		lastMove = move;
 
 		if (time > maxTime || i > 100) {
-			i += 1;
+			i += 2;
+			if (time < TROGDEEP)
+				i ++;
 			t1 = clock();
 			int move = alphaBeta(i, i, 0, 0, INT_MAX, BLUE, getColumn(lastMove), 0); // 0 for speed
 			t2 = clock();
 			double time = (double) (t2 - t1) / CLOCKS_PER_SEC;
+			fprintf(stderr, "Time: %f\n", time);
 			int score = move >> 6;
 			if (score > 1000000 || score < -1000000) {
 				bestMove = move;
@@ -810,6 +814,10 @@ int main(void) {
 			col = 5;
 			p = pieces[BLUE];
 			wasteMovePro();
+		} else if (totMoves == 7 && getPiece(5,3) == RED && getPiece(3,3) == RED && getPiece(2,3) == RED) {
+			col = 7;
+			p = pieces[BLUE];
+			wasteMovePro();
 		} else if (totMoves == 9 && getPiece(5,3) == RED && getPiece(0,4) == RED) {
 			col = 4;
 			p = pieces[BLUE];
@@ -834,18 +842,43 @@ int main(void) {
 			col = 3;
 			p = pieces[BLUE];
 			wasteMovePro();
-		} else if (totMoves == 6 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED) {
+		} else if (totMoves == 4 && getPiece(0,3) == RED && getPiece(2,3) == RED) {
+			col = 2;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 6 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED) {
+			col = 5;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 8 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED) {
+			col = 5;
+			p = pieces[GREEN];
+			wasteMovePro();
+		} else if (totMoves == 8 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED) {
 			col = 6;
+			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 12 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED && getPiece(2,2) == RED && getPiece(0,7) == RED) {
+			col = 5;
 			p = pieces[BLUE];
 			wasteMovePro();
 		} else if (totMoves == 12 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(0,8) == RED) {
 			col = 6;
 			p = pieces[BLUE];
 			wasteMovePro();
+		} else if (totMoves == 14 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED && getPiece(2,2) == RED && getPiece(0,7) == RED && getPiece(3,5) == RED) {
+			col = 7;
+			p = pieces[BLUE];
+			wasteMovePro();
 		} else if (totMoves == 14 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(0,8) == RED
 				&& getPiece(3,6) == RED) {
 			col = 7;
 			p = pieces[BLUE];
+			wasteMovePro();
+		} else if (totMoves == 16 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED && getPiece(2,2) == RED && getPiece(0,7) == RED && getPiece(3,5) == RED
+				 && getPiece(3,2) == RED) {
+			col = 6;
+			p = pieces[GREEN];
 			wasteMovePro();
 		} else {
 			move = getMovePro(rush);
