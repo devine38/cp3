@@ -14,7 +14,7 @@
 #define CUTOFF 20
 #define MAXTIME 4
 #define RUSHTIME 0.1
-#define TESTMODE 0
+#define TESTMODE 1
 
 // Macros
 #define getPiece(r,c) board[skipPadding + r + c * rows]
@@ -167,7 +167,7 @@ int getMovePro(int rush) {
 		if (i >= remaining)
 			break;
 
-		if (time > maxTime) {
+		if (time > maxTime || bestMove >> 6 > 1000000) {
 			done = 1;
 			for (i++;; i++) {
 				t1 = clock();
@@ -579,13 +579,7 @@ int isAlmostWin(int lastColumn) {
 }
 
 int getTop(int column) {
-	int top, i;
-	for (i = 0;; i++) {
-		if (getPiece(i,column) == SPACE) {
-			top = i;
-			return top;
-		}
-	}
+	return columnHeight[column];
 }
 
 int diffWins() {
@@ -688,10 +682,10 @@ int columnWins(int theirTurn) {
 
 		int placed = 0;
 		int done = 0;
-		if (theirTurn) {
-			addPiece(i, RED);
-			placed++;
-		}
+//		if (theirTurn) {
+//			addPiece(i, SPACE);
+//			placed++;
+//		}
 		while (columnHeight[i] < boardSize(rows)) {
 			addPiece(i, GREEN);
 			placed++;
@@ -723,7 +717,6 @@ int columnWins(int theirTurn) {
 						addPiece(i, RED);
 						if (isWin(i) < -2) {
 							points -= 10;
-
 						}
 					}
 				}
@@ -732,7 +725,6 @@ int columnWins(int theirTurn) {
 			remPiece(i);
 			addPiece(i, BLUE);
 			if (isWin(i) > 2) {
-				points++;
 				points++;
 				if (columnHeight[i] < boardSize(rows)) {
 					addPiece(i, GREEN);
@@ -744,7 +736,6 @@ int columnWins(int theirTurn) {
 						addPiece(i, BLUE);
 						if (isWin(i) > 2) {
 							points += 10;
-
 						}
 					}
 				}
@@ -764,20 +755,23 @@ int columnWins(int theirTurn) {
 						addPiece(i, RED);
 						if (isWin(i) < -2) {
 							points -= 10;
-
 						}
 					}
 				}
 				break;
 			}
-			if (getPiece(columnHeight[i],i-1) == SPACE && getPiece(columnHeight[i],i+1) == SPACE)
+			remPiece(i);
+			addPiece(i, SPACE);
+			if (getPiece((columnHeight[i]-1),(i-1)) == SPACE && getPiece((columnHeight[i]-1),(i+1)) == SPACE) {
+				//fprintf(stderr, "Pieces %c,%c\n",pieces[getPiece((columnHeight[i]-1),(i-1))],pieces[getPiece((columnHeight[i]-1),(i+1))]);
 				break;
+			}
+
 		}
 		for (j = 0; j < placed; j++) {
 			remPiece(i);
 		}
 	}
-	//printBoard();
 	//fprintf(stderr, "Points: %d\n",points);
 	return points;
 }
@@ -803,6 +797,9 @@ int main(void) {
 
 	readboard();
 
+//	fprintf(stderr, "Theirs: %d\n", columnWins(1));
+//	fprintf(stderr, "Ours: %d\n", columnWins(0));
+
 	if (player_1_time > 500000)
 		rush = 1;
 
@@ -825,8 +822,6 @@ int main(void) {
 
 	return 0;
 }
-
-
 
 //	if (boardSize(columns) == 10 && totMoves < 20) {
 //		if (totMoves == 1 && getPiece(0,3) == RED) {
