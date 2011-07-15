@@ -14,7 +14,7 @@
 #define MAXTIME 1
 #define TROGDEEP 2.5
 #define RUSHTIME 0.1
-#define TESTMODE 1
+#define TESTMODE 0
 
 // Macros
 #define getPiece(r,c) board[skipPadding + r + c * rows]
@@ -155,6 +155,7 @@ int getMovePro(int rush) {
 
 		lastMove = move;
 
+<<<<<<< HEAD
 		if (time > maxTime || i > 100) {
 			i += 2;
 			if (time < TROGDEEP)
@@ -167,6 +168,31 @@ int getMovePro(int rush) {
 			int score = move >> 6;
 			if (score > 1000000 || score < -1000000) {
 				bestMove = move;
+=======
+		if (i >= remaining)
+			break;
+
+		if (time > maxTime) {
+			done = 1;
+			for (i++;; i++) {
+				t1 = clock();
+				int move = alphaBeta(i, i, 0, 0, INT_MAX, BLUE, getColumn(lastMove), 0); // 0 for speed
+				t2 = clock();
+				time = (double) (t2 - t1) / CLOCKS_PER_SEC;
+				if (TESTMODE)
+					fprintf(stderr, "Depth %d best move is %d,%c for %d points.\nTime: %f\n", i, getColumn(move), pieces[getPlayed(move)], move >> 6, time);
+				int score = move >> 6;
+				if (score > 1000000) {
+					bestMove = move;
+				}
+				if (score < -1000000) {
+					i--;
+					done = 1;
+					break;
+				}
+				if (time > maxTime || i >= remaining)
+					break;
+>>>>>>> parent of fad2aeb... Fixed columnWins from being complete crap to working.
 			}
 
 			break;
@@ -551,7 +577,13 @@ int isAlmostWin(int lastColumn) {
 }
 
 int getTop(int column) {
-	return columnHeight[column];
+	int top, i;
+	for (i = 0;; i++) {
+		if (getPiece(i,column) == SPACE) {
+			top = i;
+			return top;
+		}
+	}
 }
 
 int diffWins() {
@@ -653,10 +685,10 @@ int columnWins(int theirTurn) {
 
 		int placed = 0;
 		int done = 0;
-//		if (theirTurn) {
-//			addPiece(i, SPACE);
-//			placed++;
-//		}
+		if (theirTurn) {
+			addPiece(i, RED);
+			placed++;
+		}
 		while (columnHeight[i] < boardSize(rows)) {
 			addPiece(i, GREEN);
 			placed++;
@@ -688,6 +720,7 @@ int columnWins(int theirTurn) {
 						addPiece(i, RED);
 						if (isWin(i) < -2) {
 							points -= 10;
+
 						}
 					}
 				}
@@ -696,6 +729,7 @@ int columnWins(int theirTurn) {
 			remPiece(i);
 			addPiece(i, BLUE);
 			if (isWin(i) > 2) {
+				points++;
 				points++;
 				if (columnHeight[i] < boardSize(rows)) {
 					addPiece(i, GREEN);
@@ -707,6 +741,7 @@ int columnWins(int theirTurn) {
 						addPiece(i, BLUE);
 						if (isWin(i) > 2) {
 							points += 10;
+
 						}
 					}
 				}
@@ -726,23 +761,20 @@ int columnWins(int theirTurn) {
 						addPiece(i, RED);
 						if (isWin(i) < -2) {
 							points -= 10;
+
 						}
 					}
 				}
 				break;
 			}
-			remPiece(i);
-			addPiece(i, SPACE);
-			if (getPiece((columnHeight[i]-1),(i-1)) == SPACE && getPiece((columnHeight[i]-1),(i+1)) == SPACE) {
-				//fprintf(stderr, "Pieces %c,%c\n",pieces[getPiece((columnHeight[i]-1),(i-1))],pieces[getPiece((columnHeight[i]-1),(i+1))]);
+			if (getPiece(columnHeight[i],i-1) == SPACE && getPiece(columnHeight[i],i+1) == SPACE)
 				break;
-			}
-
 		}
 		for (j = 0; j < placed; j++) {
 			remPiece(i);
 		}
 	}
+	//printBoard();
 	//fprintf(stderr, "Points: %d\n",points);
 	return points;
 }
@@ -791,9 +823,6 @@ int main(void) {
 	int rush = 0, totMoves = 0;
 
 	readboard();
-
-//	fprintf(stderr, "Theirs: %d\n", columnWins(1));
-//	fprintf(stderr, "Ours: %d\n", columnWins(0));
 
 	if (player_1_time > 500000)
 		rush = 1;
@@ -894,6 +923,98 @@ int main(void) {
 }
 
 
+<<<<<<< HEAD
+=======
+
+//	if (boardSize(columns) == 10 && totMoves < 20) {
+//		if (totMoves == 1 && getPiece(0,3) == RED) {
+//			col = 3;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 3 && getPiece(2,3) == RED) {
+//			col = 5;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 7 && getPiece(5,3) == RED && getPiece(3,3) == RED && getPiece(2,3) == RED) {
+//			col = 7;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 9 && getPiece(5,3) == RED && getPiece(0,4) == RED) {
+//			col = 4;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 13 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN) {
+//			col = 2;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 15 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN && getPiece(3,2) == RED) {
+//			col = 2;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 17 && getPiece(5,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(0,1) == GREEN && getPiece(3,2) == RED && getPiece(1,6) == RED) {
+//			col = 6;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 0) {
+//			col = 2;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 2 && getPiece(0,3) == RED) {
+//			col = 3;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 4 && getPiece(0,3) == RED && getPiece(2,3) == RED) {
+//			col = 2;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 6 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED) {
+//			col = 5;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 8 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED) {
+//			col = 5;
+//			p = pieces[GREEN];
+//			wasteMovePro();
+//		} else if (totMoves == 8 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED) {
+//			col = 6;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 12 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED && getPiece(2,2) == RED && getPiece(0,7) == RED) {
+//			col = 5;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 12 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(0,8) == RED) {
+//			col = 6;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 14 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED && getPiece(2,2) == RED && getPiece(0,7) == RED
+//				&& getPiece(3,5) == RED) {
+//			col = 7;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 14 && getPiece(0,3) == RED && getPiece(0,4) == RED && getPiece(1,2) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(0,8) == RED
+//				&& getPiece(3,6) == RED) {
+//			col = 7;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else if (totMoves == 16 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED && getPiece(2,2) == RED && getPiece(0,7) == RED
+//				&& getPiece(3,5) == RED && getPiece(3,2) == RED) {
+//			col = 6;
+//			p = pieces[GREEN];
+//			wasteMovePro();
+//		} else if (totMoves == 18 && getPiece(0,3) == RED && getPiece(2,3) == RED && getPiece(3,3) == RED && getPiece(4,3) == RED && getPiece(2,2) == RED && getPiece(0,7) == RED
+//				&& getPiece(3,5) == RED && getPiece(3,2) == RED && getPiece(4,2) == RED) {
+//			col = 8;
+//			p = pieces[BLUE];
+//			wasteMovePro();
+//		} else {
+//			move = getMovePro(rush);
+//			col = getColumn(move);
+//			p = pieces[getPlayed(move)];
+//		}
+//	} else {
+//	}
+>>>>>>> parent of fad2aeb... Fixed columnWins from being complete crap to working.
 /* else if (totMoves == 3 && getPiece(0,3) == RED && getPiece(1,3) == RED) {
  col = 7;
  p = pieces[BLUE];
